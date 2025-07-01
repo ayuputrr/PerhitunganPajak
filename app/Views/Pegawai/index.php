@@ -55,13 +55,6 @@
     </div>
   </div>
 
-  <div class="card shadow-sm border-0 chart-container mb-4">
-    <div class="card-body">
-      <h5 class="mb-4 fw-semibold">📈 Grafik Total Bulanan Pajak & Gaji</h5>
-      <div id="grafikTotalBulanan" style="height: 320px;"></div>
-    </div>
-  </div>
-
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
     <form class="d-flex" method="get" action="">
       <input type="text" name="search" class="form-control me-2" placeholder="Cari nama pegawai..." value="<?= esc($search ?? '') ?>">
@@ -76,6 +69,23 @@
       </a>
     </div>
   </div>
+
+  <!-- Grafik Pajak Tahunan -->
+<div class="card shadow-sm border-0 chart-container mb-4">
+  <div class="card-body">
+    <h5 class="fw-bold text-center mb-4">Grafik Total Pajak PPH 21 Pegawai (Tahunan)</h5>
+    <div id="grafikPajakTahunan"></div>
+  </div>
+</div>
+
+    <!-- Grafik Pajak Bulanan -->
+  <div class="card shadow-sm border-0 chart-container mb-4">
+    <div class="card-body">
+      <h5 class="fw-bold text-center mb-4">Grafik Total Pajak PPH 21 Pegawai (Bulanan)</h5>
+      <div id="grafikPajakBulanan"></div>
+    </div>
+  </div>
+</div>
 
   <div class="card shadow-sm border-0 chart-container mb-4">
     <div class="card-body">
@@ -122,61 +132,90 @@
       </div>
     </div>
   </div>
-</div>
 
+<!-- ApexCharts CDN -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    var options = {
-      chart: {
-        type: 'bar',
-        height: 320
-      },
-      plotOptions: {
-        bar: {
-          horizontal: true,
-          borderRadius: 5,
-          barHeight: '65%',
-        }
-      },
-      colors: ['#2F80ED', '#F2994A', '#27AE60'],
-      dataLabels: {
-        enabled: true,
+  const options = {
+    chart: {
+      type: 'bar',
+      height: 350,
+      toolbar: { show: false }
+    },
+    series: [{
+      name: 'PPH Bulanan',
+      data: [
+        20077732, 29342956, 10935782, 12673892,
+        19289660, 27996889, 13609684, 17921796,
+        29351945, 19344113, 14974722, 18832784
+      ]
+    }],
+    xaxis: {
+      categories: [
+        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      ],
+      title: { text: 'Bulan' }
+    },
+    yaxis: {
+      labels: {
         formatter: function (val) {
-          return "Rp " + val.toLocaleString("id-ID");
-        },
-        style: {
-          fontWeight: 'bold'
+          return 'Rp ' + val.toLocaleString();
         }
       },
-      series: [{
-        name: 'Total Bulanan',
-        data: [
-          <?= array_sum(array_column($pegawai, 'bruto_bulanan')) ?>,
-          <?= array_sum(array_column($pegawai, 'pph_bruto_bulanan')) ?>,
-          <?= array_sum(array_column($pegawai, 'pph_bruto_tpp_bulanan')) ?>
-        ]
-      }],
-      xaxis: {
-        categories: ['Gaji Bruto Bulanan', 'PPH Bruto Bulanan', 'PPH + TPP Bulanan'],
-        labels: {
-          formatter: function (val) {
-            return "Rp " + parseInt(val).toLocaleString("id-ID");
-          }
-        }
-      },
-      tooltip: {
-        y: {
-          formatter: function (val) {
-            return "Rp " + val.toLocaleString("id-ID");
-          }
+      title: { text: 'Total PPH 21' }
+    },
+    colors: ['#00B894'],
+    dataLabels: { enabled: false },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return 'Rp ' + val.toLocaleString();
         }
       }
-    };
+    }
+  };
 
-    var chart = new ApexCharts(document.querySelector("#grafikTotalBulanan"), options);
-    chart.render();
-  });
+  const chart = new ApexCharts(document.querySelector("#grafikPajakBulanan"), options);
+  chart.render();
+
+  const optionsTahunan = {
+    chart: {
+      type: 'bar',
+      height: 350,
+      toolbar: { show: false }
+    },
+    series: [{
+      name: 'PPH Tahunan',
+      data: [
+        260000000, 245000000, 275000000, 300000000, 225000000, 315000000
+      ]
+    }],
+    xaxis: {
+      categories: ['2019', '2020', '2021', '2022', '2023', '2024'],
+      title: { text: 'Tahun' }
+    },
+    yaxis: {
+      labels: {
+        formatter: function (val) {
+          return 'Rp ' + val.toLocaleString();
+        }
+      },
+      title: { text: 'Total PPH 21 Tahunan' }
+    },
+    colors: ['#F39C12'],
+    dataLabels: { enabled: false },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return 'Rp ' + val.toLocaleString();
+        }
+      }
+    }
+  };
+
+  const chartTahunan = new ApexCharts(document.querySelector("#grafikPajakTahunan"), optionsTahunan);
+  chartTahunan.render();
 </script>
 
 <?= $this->endSection() ?>

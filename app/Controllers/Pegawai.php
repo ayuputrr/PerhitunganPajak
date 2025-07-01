@@ -6,11 +6,22 @@ use App\Models\PegawaiModel;
 class Pegawai extends BaseController
 {
     public function index()
-    {
-        $model = new PegawaiModel();
-        $data['pegawai'] = $model->findAll();
-        return view('pegawai/index', $data);
+{
+    $model = new PegawaiModel();
+    $search = $this->request->getGet('search');
+
+    if ($search) {
+        $pegawai = $model->like('nama', $search)->findAll();
+    } else {
+        $pegawai = $model->findAll();
     }
+
+    return view('pegawai/index', [
+        'pegawai' => $pegawai,
+        'search' => $search
+    ]);
+}
+
 
     public function create()
     {
