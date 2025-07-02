@@ -1,3 +1,30 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Pajak</title>
+</head>
+<body>
+    <h2>Selamat Datang, <?= session('nama') ?></h2>
+
+    <h3>Laporan Pajak Terbaru</h3>
+    <?php if ($laporan): ?>
+        <ul>
+            <li>Bulan: <?= $laporan['bulan'] ?></li>
+            <li>Tahun: <?= $laporan['tahun'] ?></li>
+            <li>Bruto Bulanan: Rp<?= number_format($laporan['bruto_bulanan'], 0, ',', '.') ?></li>
+            <li>PPH Bruto Gaji: Rp<?= number_format($laporan['pph_bruto_bulanan'], 0, ',', '.') ?></li>
+            <li>PPH Bruto TPP: Rp<?= number_format($laporan['pph_bruto_tpp_bulanan'], 0, ',', '.') ?></li>
+        </ul>
+    <?php else: ?>
+        <p>Tidak ada laporan tersedia.</p>
+    <?php endif; ?>
+
+    <p><a href="<?= base_url('pengguna/arsip') ?>">Lihat Arsip Laporan</a></p>
+</body>
+</html>
+=======
 <?= $this->extend('layout') ?>
 <?= $this->section('content') ?>
 
@@ -32,3 +59,4 @@
 </div>
 
 <?= $this->endSection() ?>
+>>>>>>> 1dae537324ce403d4bb1015628acd988641ee27a
