@@ -5,7 +5,6 @@ use App\Models\PegawaiModel;
 
 class Pegawai extends BaseController
 {
-<<<<<<< HEAD
     public function dashboard()
     {
         $model = new PegawaiModel();
@@ -13,7 +12,7 @@ class Pegawai extends BaseController
         return view('pegawai/dashboard', $data);
     }
 
-=======
+
     public function index()
 {
     $model = new PegawaiModel();
@@ -32,7 +31,7 @@ class Pegawai extends BaseController
 }
 
 
->>>>>>> 1dae537324ce403d4bb1015628acd988641ee27a
+
     public function create()
     {
         return view('pegawai/form');
