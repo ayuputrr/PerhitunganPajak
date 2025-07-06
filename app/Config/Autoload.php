@@ -3,6 +3,7 @@
 namespace Config;
 
 use CodeIgniter\Config\AutoloadConfig;
+$autoload['helpers'] = ['url', 'form', 'pdf'];
 
 /**
  * -------------------------------------------------------------------

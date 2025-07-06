@@ -120,10 +120,8 @@ public function doLoginAdmin()
         return redirect()->to('/login/pengguna')->with('success', 'Registrasi berhasil. Silakan login.');
     }
 
-    // LOGOUT semua peran
-    public function logout()
-    {
-        session()->destroy();
-        return redirect()->to('/login')->with('success', 'Anda telah logout.');
-    }
-}
+public function logout()
+{
+    session()->destroy();
+    return redirect()->to('/')->with('success', 'Anda telah logout.');
+}}

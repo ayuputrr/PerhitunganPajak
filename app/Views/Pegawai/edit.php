@@ -18,12 +18,10 @@
           <label class="form-label">Nama</label>
           <input type="text" name="nama" class="form-control" value="<?= $pegawai['nama'] ?>" required>
         </div>
-
         <div class="col-md-6">
           <label class="form-label">NIP</label>
           <input type="text" name="nip" class="form-control" value="<?= $pegawai['nip'] ?>" required>
         </div>
-
         <div class="col-md-6">
           <label class="form-label">Status</label>
           <select name="status" class="form-select" required>
@@ -37,13 +35,11 @@
             ?>
           </select>
         </div>
-
         <?php
         $fields = [
           'gaji_pokok', 'tunj_suami_istri', 'tunj_anak', 'tunj_jabatan', 'tunj_beras',
           'tunj_lain', 'iuran_pensiun', 'tpp', 'thr_gaji', 'thr_tpp', 'gaji13', 'tpp13'
         ];
-
         foreach ($fields as $f):
         ?>
           <div class="col-md-6">
@@ -51,17 +47,31 @@
             <input type="number" name="<?= $f ?>" class="form-control" value="<?= $pegawai[$f] ?>">
           </div>
         <?php endforeach; ?>
-
+        <div class="col-md-6">
+          <label class="form-label">Tahun</label>
+          <input type="number" name="tahun" class="form-control" value="<?= $pegawai['tahun'] ?>" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Bulan</label>
+          <select name="bulan" class="form-select" required>
+            <option value="">-- Pilih Bulan --</option>
+            <?php
+              $bulanList = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+              foreach ($bulanList as $i => $namaBulan) {
+                $selected = ($pegawai['bulan'] == $i+1) ? 'selected' : '';
+                echo "<option value='".($i+1)."' $selected>$namaBulan</option>";
+              }
+            ?>
+          </select>
+        </div>
         <div class="col-12">
           <button type="submit" class="btn btn-success">Update</button>
           <a href="/pegawai" class="btn btn-secondary">Kembali</a>
         </div>
-
       </form>
     </div>
   </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

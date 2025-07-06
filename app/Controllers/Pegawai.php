@@ -1,36 +1,59 @@
 <?php namespace App\Controllers;
+
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use App\Models\PegawaiModel;
+use App\Models\NotifikasiModel;
 
 class Pegawai extends BaseController
 {
     public function dashboard()
     {
-        $model = new PegawaiModel();
-        $data['pegawai'] = $model->findAll();
-        return view('pegawai/dashboard', $data);
+        $pegawaiModel = new PegawaiModel();
+        $notifikasiModel = new NotifikasiModel();
+
+        $search = $this->request->getGet('search');
+        $pegawai = $pegawaiModel->findAll();
+
+        if ($search) {
+            $pegawai = array_filter($pegawai, function ($row) use ($search) {
+                return stripos($row['nama'], $search) !== false;
+            });
+        }
+
+        $bulan = date('n');
+        $tahun = date('Y');
+        $notifikasi_terkirim = $notifikasiModel
+            ->where('bulan', $bulan)
+            ->where('tahun', $tahun)
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
+
+        return view('pegawai/dashboard', [
+            'pegawai' => $pegawai,
+            'search' => $search,
+            'notifikasi_terkirim' => $notifikasi_terkirim
+        ]);
     }
-
-
     public function index()
-{
-    $model = new PegawaiModel();
-    $search = $this->request->getGet('search');
+    {
+        $model = new PegawaiModel();
+        $search = $this->request->getGet('search');
 
-    if ($search) {
-        $pegawai = $model->like('nama', $search)->findAll();
-    } else {
-        $pegawai = $model->findAll();
+        if ($search) {
+            $pegawai = $model->like('nama', $search)->findAll();
+        } else {
+            $pegawai = $model->findAll();
+        }
+
+        return view('pegawai/index', [
+            'pegawai' => $pegawai,
+            'search' => $search
+        ]);
     }
-
-    return view('pegawai/index', [
-        'pegawai' => $pegawai,
-        'search' => $search
-    ]);
-}
-
-
 
     public function create()
     {
@@ -39,7 +62,7 @@ class Pegawai extends BaseController
 
     public function edit($id)
     {
-        $model = new \App\Models\PegawaiModel();
+        $model = new PegawaiModel();
         $pegawai = $model->find($id);
 
         if (!$pegawai) {
@@ -48,40 +71,115 @@ class Pegawai extends BaseController
 
         return view('pegawai/edit', ['pegawai' => $pegawai]);
     }
+public function detail($id)
+{
+    $model = new PegawaiModel();
+    $pegawai = $model->find($id);
 
-    public function update($id)
-    {
-        $model = new \App\Models\PegawaiModel();
-        $data = $this->request->getPost();
-
-        // Hitung ulang bruto bulanan
-        $bruto = $data['gaji_pokok'] + $data['tunj_suami_istri'] + $data['tunj_anak'] +
-                $data['tunj_jabatan'] + $data['tunj_beras'] + $data['tunj_lain'];
-
-        $data['bruto_bulanan'] = $bruto;
-
-        $model->update($id, $data);
-        return redirect()->to('/pegawai');
+    if (!$pegawai) {
+        return redirect()->to('/pegawai')->with('error', 'Data pegawai tidak ditemukan.');
     }
 
-    public function store()
-    {
-        $model = new PegawaiModel();
+    return view('pegawai/detail', ['pegawai' => $pegawai]);
+}
 
-        $data = $this->request->getPost();
+   public function update($id)
+{
+    $model = new PegawaiModel();
+    $dataBaru = $this->request->getPost();
+    $dataLama = $model->find($id);
 
-        // Hitung Total Gaji Bruto Bulanan
-        $bruto = $data['gaji_pokok'] + $data['tunj_suami_istri'] + $data['tunj_anak'] +
-                 $data['tunj_jabatan'] + $data['tunj_beras'] + $data['tunj_lain'];
+    $dataUpdate = array_merge($dataLama, $dataBaru);
 
-        $data['bruto_bulanan'] = $bruto;
+    $dataUpdate['bruto_bulanan'] = $dataUpdate['gaji_pokok'] + $dataUpdate['tunj_suami_istri'] + $dataUpdate['tunj_anak'] +
+                                   $dataUpdate['tunj_jabatan'] + $dataUpdate['tunj_beras'] + $dataUpdate['tunj_lain'];
 
-        $model->insert($data);
-        return redirect()->to('/pegawai');
+    // Ambil bulan & tahun dari form, bukan dari sistem
+    $dataUpdate['bulan'] = $this->request->getPost('bulan');
+    $dataUpdate['tahun'] = $this->request->getPost('tahun');
+
+    $model->update($id, $dataUpdate);
+
+    // Otomatis hitung dan update data tahunan
+    $this->hitungTahunan($id);
+
+    return redirect()->to('/pegawai');
+}
+
+ public function store()
+{
+    $model = new PegawaiModel();
+    $data = $this->request->getPost();
+
+    $bruto = $data['gaji_pokok'] + $data['tunj_suami_istri'] + $data['tunj_anak'] +
+             $data['tunj_jabatan'] + $data['tunj_beras'] + $data['tunj_lain'];
+    $data['bruto_bulanan'] = $bruto;
+
+    // Ambil bulan & tahun dari form, bukan dari sistem
+    $data['bulan'] = $this->request->getPost('bulan');
+    $data['tahun'] = $this->request->getPost('tahun');
+
+    $model->insert($data);
+    $id = $model->getInsertID();
+
+    // Otomatis hitung dan update data tahunan
+    $this->hitungTahunan($id);
+
+    return redirect()->to('/pegawai/dashboard')->with('success', 'Pegawai berhasil ditambahkan dan data tahunan terupdate.');
+}
+
+public function kirimNotifikasi()
+{
+    $pegawaiModel = new PegawaiModel();
+    $notifikasiModel = new NotifikasiModel();
+
+    $nip = $this->request->getPost('nip');
+    $bulan = $this->request->getPost('bulan');
+    $tahun = $this->request->getPost('tahun');
+
+    if (!$nip || !$bulan || !$tahun) {
+        return redirect()->back()->with('error', 'Data NIP, bulan, atau tahun tidak lengkap.');
     }
+
+    $pegawai = $pegawaiModel->where('nip', $nip)->where('bulan', $bulan)->where('tahun', $tahun)->first();
+    if (!$pegawai) {
+        return redirect()->back()->with('error', 'Data pegawai tidak ditemukan untuk bulan & tahun tersebut.');
+    }
+
+    $sudahAda = $notifikasiModel
+        ->where('nip', $nip)
+        ->where('bulan', $bulan)
+        ->where('tahun', $tahun)
+        ->first();
+
+    if ($sudahAda) {
+        return redirect()->back()->with('error', 'Notifikasi sudah pernah dikirim untuk bulan ini.');
+    }
+
+    $namaBulan = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
+    $namaBulanStr = $namaBulan[(int)$bulan] ?? 'Bulan Tidak Valid';
+
+    $pesan = "Laporan pajak bulan $namaBulanStr $tahun telah dikirim admin. Silakan cek dashboard Anda.";
+
+    $notifikasiModel->save([
+        'nip'    => $pegawai['nip'],
+        'nama'   => $pegawai['nama'],
+        'pesan'  => $pesan,
+        'dibaca' => 0,
+        'bulan'  => $bulan,
+        'tahun'  => $tahun
+    ]);
+
+    return redirect()->to('/pegawai/dashboard')->with('success', 'Notifikasi berhasil dikirim ke pengguna.');
+}
+
     public function exportExcel($id)
     {
-        $model = new \App\Models\PegawaiModel();
+        $model = new PegawaiModel();
         $pegawai = $model->find($id);
 
         if (!$pegawai) {
@@ -91,21 +189,18 @@ class Pegawai extends BaseController
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Header kolom
         $col = 'A';
         foreach (array_keys($pegawai) as $key) {
             $sheet->setCellValue($col . '1', ucfirst(str_replace('_', ' ', $key)));
             $col++;
         }
 
-        // Data pegawai
         $col = 'A';
         foreach ($pegawai as $value) {
             $sheet->setCellValue($col . '2', $value);
             $col++;
         }
 
-        // Output
         $filename = 'pegawai_' . $pegawai['nip'] . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header("Content-Disposition: attachment;filename=\"$filename\"");
@@ -115,9 +210,10 @@ class Pegawai extends BaseController
         $writer->save('php://output');
         exit;
     }
+
     public function exportExcelAll()
     {
-        $model = new \App\Models\PegawaiModel();
+        $model = new PegawaiModel();
         $pegawaiList = $model->findAll();
 
         if (!$pegawaiList) {
@@ -127,7 +223,6 @@ class Pegawai extends BaseController
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Header kolom
         $firstPegawai = $pegawaiList[0];
         $col = 'A';
         foreach (array_keys($firstPegawai) as $key) {
@@ -135,7 +230,6 @@ class Pegawai extends BaseController
             $col++;
         }
 
-        // Isi data pegawai
         $rowNum = 2;
         foreach ($pegawaiList as $pegawai) {
             $col = 'A';
@@ -146,7 +240,6 @@ class Pegawai extends BaseController
             $rowNum++;
         }
 
-        // Output
         $filename = 'semua_pegawai.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header("Content-Disposition: attachment;filename=\"$filename\"");
@@ -156,6 +249,19 @@ class Pegawai extends BaseController
         $writer->save('php://output');
         exit;
     }
+
+    public function export($id)
+    {
+        $model = new PegawaiModel();
+        $pegawai = $model->find($id);
+
+        if (!$pegawai) {
+            return redirect()->to('/pegawai');
+        }
+
+        return view('pegawai/laporan', ['data' => $pegawai]);
+    }
+
     public function hitung($id)
     {
         $model = new PegawaiModel();
@@ -170,7 +276,6 @@ class Pegawai extends BaseController
         $status = $pegawai['status'];
         $bruto_tpp = $bruto + $tpp;
 
-        // Hitung tarif TER untuk PPH dari bruto saja
         $tarif_bruto = 0;
         if (in_array($status, ['TK/0', 'TK/1', 'K/0', 'HB/0', 'HB/1'])) {
             $tarif_bruto = $this->getTER($bruto, 'A');
@@ -180,7 +285,6 @@ class Pegawai extends BaseController
             $tarif_bruto = $this->getTER($bruto, 'C');
         }
 
-        // Hitung tarif TER untuk PPH dari bruto + tpp
         $tarif_bruto_tpp = 0;
         if (in_array($status, ['TK/0', 'TK/1', 'K/0', 'HB/0', 'HB/1'])) {
             $tarif_bruto_tpp = $this->getTER($bruto_tpp, 'A');
@@ -190,23 +294,77 @@ class Pegawai extends BaseController
             $tarif_bruto_tpp = $this->getTER($bruto_tpp, 'C');
         }
 
-        // Hitung PPH Bulanan
         $pph_bruto = ($tarif_bruto / 100) * $bruto;
         $pph_bruto_tpp = ($tarif_bruto_tpp / 100) * ($bruto + $tpp);
 
-        // Update ke database
         $model->update($id, [
             'pph_bruto_bulanan' => round($pph_bruto),
             'pph_bruto_tpp_bulanan' => round($pph_bruto_tpp),
         ]);
 
+        // Otomatis hitung dan update data tahunan juga
+        $this->hitungTahunan($id);
+
         return redirect()->to('/pegawai');
     }
+
+    /**
+     * Fungsi khusus untuk menghitung dan mengupdate data tahunan pegawai.
+     * Tidak return view, hanya update data.
+     */
+   
+   
+   
+   
+     public function hitungTahunan($id)
+    {
+        $model = new PegawaiModel();
+        $pegawai = $model->find($id);
+
+        if (!$pegawai) {
+            return false;
+        }
+
+        $brutoBulanan = $pegawai['bruto_bulanan'];
+        $tppBulanan = $pegawai['tpp'];
+        $iuran = $pegawai['iuran_pensiun'];
+
+        $brutoTahunan = $brutoBulanan * 12;
+        $tppTahunan = $tppBulanan * 12;
+
+        $totalBrutoTahunan = $brutoTahunan + $tppTahunan + $pegawai['thr_gaji'] + $pegawai['thr_tpp'] + $pegawai['gaji13'] + $pegawai['tpp13'];
+        $iuranTahunan = $iuran * 12;
+
+        $biayaJabatan = 0.05 * $totalBrutoTahunan;
+        if ($biayaJabatan > 6000000) {
+            $biayaJabatan = 6000000;
+        }
+
+        $totalPengurangan = $biayaJabatan + $iuranTahunan;
+        $netto = $totalBrutoTahunan - $totalPengurangan;
+        $ptkp = $this->getPTKP($pegawai['status']);
+        $pkp = $netto - $ptkp;
+        if ($pkp < 0) $pkp = 0;
+
+        $pphSetahun = $this->hitungProgresif($pkp);
+
+        $model->update($id, [
+            'bruto_tahunan' => $brutoTahunan,
+            'iuran_tahunan' => $iuranTahunan,
+            'biaya_jabatan' => $biayaJabatan,
+            'total_pengurangan' => $totalPengurangan,
+            'netto_tahunan' => $netto,
+            'ptkp' => $ptkp,
+            'pkp' => $pkp,
+            'pph_setahun' => $pphSetahun,
+            'tarif' => $this->getTER($pkp, 'A')
+        ]);
+        return true;
+    }
+
     private function getTER($bruto, $tipe = 'A')
     {
-        // Data TER berdasarkan kolom bruto untuk tipe A, B, C
         $terArray = [];
-
         switch ($tipe) {
             case 'A':
                 $terArray = [
@@ -227,7 +385,6 @@ class Pegawai extends BaseController
                     [910000001, 1400000000, 33], [1400000001, PHP_INT_MAX, 34]
                 ];
                 break;
-            
             case 'B':
                 $terArray = [
                     [0, 6200000, 0], [6200001, 6500000, 0.25], [6500001, 6850000, 0.5],
@@ -246,8 +403,6 @@ class Pegawai extends BaseController
                     [1405000001, PHP_INT_MAX, 34]
                 ];
                 break;
-
-
             case 'C':
                 $terArray = [
                     [0, 6600000, 0], [6600001, 6950000, 0.25], [6950001, 7350000, 0.5],
@@ -266,98 +421,15 @@ class Pegawai extends BaseController
                     [965000001, 1419000000, 33], [1419000001, PHP_INT_MAX, 34]
                 ];
                 break;
-
         }
-
         foreach ($terArray as $range) {
             if ($bruto >= $range[0] && $bruto <= $range[1]) {
                 return $range[2];
             }
         }
-
         return 0;
     }
-    public function export($id)
-    {
-        $model = new PegawaiModel();
-        $pegawai = $model->find($id);
 
-        if (!$pegawai) {
-            return redirect()->to('/pegawai');
-        }
-
-        return view('pegawai/laporan', ['data' => $pegawai]);
-    }
-    public function hitungTahunan($id)
-    {
-        $model = new PegawaiModel();
-        $pegawai = $model->find($id);
-
-        if (!$pegawai) {
-            return redirect()->to('/pegawai');
-        }
-
-        // === Langkah 1: Hitung Komponen Tahunan ===
-        $brutoBulanan = $pegawai['bruto_bulanan'];
-        $tppBulanan = $pegawai['tpp'];
-        $iuran = $pegawai['iuran_pensiun'];
-        //$pphBrutoBulanan = $pegawai['pph_bruto_bulanan'];
-
-        $brutoTahunan = $brutoBulanan * 12;
-        $tppTahunan = $tppBulanan * 12;
-
-        $totalBrutoTahunan = $brutoTahunan + $tppTahunan + $pegawai['thr_gaji'] + $pegawai['thr_tpp'] + $pegawai['gaji13'] + $pegawai['tpp13'];
-        $iuranTahunan = $iuran * 12;
-
-        // === Langkah 2: Hitung Biaya Jabatan (max 6 juta) ===
-        $biayaJabatan = 0.05 * $totalBrutoTahunan;
-        if ($biayaJabatan > 6000000) {
-            $biayaJabatan = 6000000;
-        }
-
-        // === Langkah 3: Total Pengurangan ===
-        $totalPengurangan = $biayaJabatan + $iuranTahunan;
-
-        // === Langkah 4: Penghasilan Netto Tahunan ===
-        $netto = $totalBrutoTahunan - $totalPengurangan;
-
-        // === Langkah 5: PTKP berdasarkan status ===
-        $ptkp = $this->getPTKP($pegawai['status']);
-
-        // === Langkah 6: Penghasilan Kena Pajak (PKP) ===
-        $pkp = $netto - $ptkp;
-        if ($pkp < 0) $pkp = 0;
-
-        // === Langkah 7: Hitung Pajak Setahun (Tarif Progresif) ===
-        $pphSetahun = $this->hitungProgresif($pkp);
-        // Simpan ke database
-        $model->update($id, [
-            'bruto_tahunan' => $brutoTahunan,
-            'iuran_tahunan' => $iuranTahunan,
-            'biaya_jabatan' => $biayaJabatan,
-            'total_pengurangan' => $totalPengurangan,
-            'netto_tahunan' => $netto,
-            'ptkp' => $ptkp,
-            'pkp' => $pkp,
-            'pph_setahun' => $pphSetahun,
-        ]);
-
-        // Tampilkan hasil
-        return view('pegawai/laporan_tahunan', [
-            'pegawai' => $pegawai,
-            'bruto_bulanan' => $brutoBulanan,
-            'bruto_tahunan' => $brutoTahunan,
-            'tpp_tahunan' => $tppTahunan,
-            'total_bruto' => $totalBrutoTahunan,
-            'iuran_tahunan' => $iuranTahunan,
-            'biaya_jabatan' => $biayaJabatan,
-            'total_pengurangan' => $totalPengurangan,
-            'netto' => $netto,
-            'ptkp' => $ptkp,
-            'pkp' => $pkp,
-            'pph_setahun' => $pphSetahun
-        ]);
-    }
     private function getPTKP($status)
     {
         switch ($status) {
@@ -376,10 +448,10 @@ class Pegawai extends BaseController
             default: return 54000000;
         }
     }
+
     private function hitungProgresif($pkp)
     {
         $pajak = 0;
-
         if ($pkp <= 60000000) {
             $pajak = 0.05 * $pkp;
         } elseif ($pkp <= 250000000) {
@@ -391,8 +463,6 @@ class Pegawai extends BaseController
         } else {
             $pajak = (0.05 * 60000000) + (0.15 * 190000000) + (0.25 * 250000000) + (0.30 * 4500000000) + (0.35 * ($pkp - 5000000000));
         }
-
         return $pajak;
     }
-
 }
