@@ -2,11 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8">
-<<<<<<< HEAD
+
   <title>Laporan Pajak</title>
-=======
+
   <title>Laporan Pajak - <?= $pegawai['nama'] ?></title>
->>>>>>> 1dae537324ce403d4bb1015628acd988641ee27a
+
   <style>
     body { font-family: sans-serif; font-size: 12px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<<<<<<< HEAD
+
   <h2>Laporan Pajak Bulan <?= $laporan['bulan'] ?>/<?= $laporan['tahun'] ?></h2>
   <table>
     <tr><th>NIP</th><td><?= $laporan['nip'] ?></td></tr>
@@ -28,7 +28,7 @@
     <h4>Rincian:</h4>
     <p><?= nl2br($laporan['detail']) ?></p>
   <?php endif ?>
-=======
+
   <h2>Laporan Pajak Pegawai</h2>
   <table>
     <tr><th>Nama</th><td><?= $pegawai['nama'] ?></td></tr>
@@ -39,6 +39,6 @@
     <tr><th>PPH + TPP Bulanan</th><td>Rp <?= number_format($pegawai['pph_bruto_tpp_bulanan']) ?></td></tr>
     <tr><th>PPH Setahun</th><td>Rp <?= number_format($pegawai['pph_setahun']) ?></td></tr>
   </table>
->>>>>>> 1dae537324ce403d4bb1015628acd988641ee27a
+
 </body>
 </html>

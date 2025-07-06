@@ -16,14 +16,20 @@ class Pengguna extends Controller
         }
 
         $nip = session()->get('nip');
-        $model = new LaporanModel();
+        $laporanModel = new LaporanModel();
+        $pegawaiModel = new PegawaiModel();
 
-        $laporan = $model->where('nip', $nip)
-                         ->orderBy('tahun', 'DESC')
-                         ->orderBy('bulan', 'DESC')
-                         ->first();
+        $laporan = $laporanModel->where('nip', $nip)
+                                ->orderBy('tahun', 'DESC')
+                                ->orderBy('bulan', 'DESC')
+                                ->first();
 
-        return view('pengguna/dashboard', ['laporan' => $laporan]);
+        $pegawai = $pegawaiModel->where('nip', $nip)->first();
+
+        return view('pengguna/dashboard', [
+            'laporan' => $laporan,
+            'pegawai' => $pegawai
+        ]);
     }
 
     public function arsip()
@@ -33,12 +39,38 @@ class Pengguna extends Controller
         }
 
         $nip = session()->get('nip');
-        $model = new LaporanModel();
+        $laporanModel = new LaporanModel();
+        $pegawaiModel = new PegawaiModel();
 
-        $arsip = $model->where('nip', $nip)
-                       ->orderBy('tahun DESC, bulan DESC')
-                       ->findAll();
+        $arsip = $laporanModel->where('nip', $nip)
+                              ->orderBy('tahun DESC, bulan DESC')
+                              ->findAll();
 
-        return view('pengguna/arsip', ['arsip' => $arsip]);
+        $pegawai = $pegawaiModel->where('nip', $nip)->first();
+
+        return view('pengguna/arsip', [
+            'arsip' => $arsip,
+            'pegawai' => $pegawai
+        ]);
+    }
+
+    public function exportPdf($id)
+    {
+        if (!session()->get('logged_in') || session()->get('role') !== 'pengguna') {
+            return redirect()->to('/login/pengguna')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        $nip = session()->get('nip');
+        $laporanModel = new LaporanModel();
+        $laporan = $laporanModel->find($id);
+
+        if (!$laporan || $laporan['nip'] !== $nip) {
+            return redirect()->to('/pengguna/dashboard')->with('error', 'Akses tidak diizinkan.');
+        }
+
+        $html = view('pengguna/pajak_pdf', ['laporan' => $laporan]);
+
+        helper('pdf');
+        generatePdf($html, 'Laporan_Pajak_' . $laporan['bulan'] . '_' . $laporan['tahun']);
     }
 }

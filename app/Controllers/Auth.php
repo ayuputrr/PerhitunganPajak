@@ -28,26 +28,28 @@ class Auth extends Controller
     }
 
     // PROSES Login Admin
-    public function doLoginAdmin()
-    {
-        $email = $this->request->getPost('email');
-        $password = $this->request->getPost('password');
+public function doLoginAdmin()
+{
+    $email = $this->request->getPost('email');
+    $password = $this->request->getPost('password');
 
-        $userModel = new UserModel();
-        $admin = $userModel->where('email', $email)->first();
+    $userModel = new UserModel();
+    $admin = $userModel->where('email', $email)->first();
 
-        if (!$admin || !password_verify($password, $admin['password'])) {
-            return redirect()->back()->with('error', 'Email atau password salah.');
-        }
-
-        session()->set([
-            'logged_in' => true,
-            'email'     => $admin['email'],
-            'role'      => 'admin'
-        ]);
-
-        return redirect()->to('/pegawai/dashboard');
+    // TANPA password_verify karena password tidak di-hash
+    if (!$admin || $password !== $admin['password']) {
+        return redirect()->back()->with('error', 'Email atau password salah.');
     }
+
+    session()->set([
+        'logged_in' => true,
+        'email'     => $admin['email'],
+        'role'      => 'admin'
+    ]);
+
+    return redirect()->to('/pegawai/dashboard');
+}
+
 
     // PROSES Login Pengguna
     public function loginPengguna()
@@ -123,5 +125,5 @@ class Auth extends Controller
     {
         session()->destroy();
         return redirect()->to('/login')->with('success', 'Anda telah logout.');
-}
+    }
 }

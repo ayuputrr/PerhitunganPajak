@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -24,7 +24,7 @@
     <p><a href="<?= base_url('pengguna/arsip') ?>">Lihat Arsip Laporan</a></p>
 </body>
 </html>
-=======
+
 <?= $this->extend('layout') ?>
 <?= $this->section('content') ?>
 
@@ -59,4 +59,3 @@
 </div>
 
 <?= $this->endSection() ?>
->>>>>>> 1dae537324ce403d4bb1015628acd988641ee27a
