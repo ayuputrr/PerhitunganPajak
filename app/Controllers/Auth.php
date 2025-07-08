@@ -28,43 +28,47 @@ class Auth extends Controller
     }
 
     // PROSES Login Admin
-public function doLoginAdmin()
-{
-    $email = $this->request->getPost('email');
-    $password = $this->request->getPost('password');
+    public function doLoginAdmin()
+    {
+        $email = $this->request->getPost('email');
+        $password = $this->request->getPost('password');
 
-    $userModel = new UserModel();
-    $admin = $userModel->where('email', $email)->first();
+        $userModel = new UserModel();
+        $admin = $userModel->where('email', $email)->first();
 
-    // TANPA password_verify karena password tidak di-hash
-    if (!$admin || $password !== $admin['password']) {
-        return redirect()->back()->with('error', 'Email atau password salah.');
+        // TANPA password_verify karena password tidak di-hash
+        if (!$admin || $password !== $admin['password']) {
+            return redirect()->back()->with('error', 'Email atau password salah.');
+        }
+
+        session()->set([
+            'logged_in' => true,
+            'email'     => $admin['email'],
+            'role'      => 'admin'
+        ]);
+
+        return redirect()->to('/pegawai/dashboard');
     }
 
-    session()->set([
-        'logged_in' => true,
-        'email'     => $admin['email'],
-        'role'      => 'admin'
-    ]);
-
-    return redirect()->to('/pegawai/dashboard');
-}
-
-
     // PROSES Login Pengguna
-    public function loginPengguna()
+ public function loginPengguna()
     {
         $nip = $this->request->getPost('nip');
         $password = $this->request->getPost('password');
+        $captchaInput = $this->request->getPost('captcha_input');
 
-        $model = new PenggunaModel();
+        if (strtolower($captchaInput) !== strtolower(session()->get('captcha_word'))) {
+            return redirect()->back()->with('error', 'Kode captcha salah.');
+        }
+
+        $model = new \App\Models\PenggunaModel();
         $user = $model->where('nip', $nip)->first();
 
         if (!$user) {
-            return redirect()->to('/login/pengguna')->with('error', 'Akun tidak ditemukan. Silakan daftar.');
+            return redirect()->to('/login/pengguna')->with('error', 'Akun tidak ditemukan.');
         }
 
-        if (!password_verify($password, $user['password'])) {
+        if ($password !== $user['password']) {
             return redirect()->back()->with('error', 'Password salah.');
         }
 
@@ -120,8 +124,9 @@ public function doLoginAdmin()
         return redirect()->to('/login/pengguna')->with('success', 'Registrasi berhasil. Silakan login.');
     }
 
-public function logout()
-{
-    session()->destroy();
-    return redirect()->to('/')->with('success', 'Anda telah logout.');
-}}
+    public function logout()
+    {
+        session()->destroy();
+        return redirect()->to('/')->with('success', 'Anda telah logout.');
+    }
+}

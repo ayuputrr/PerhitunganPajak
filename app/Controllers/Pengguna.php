@@ -225,74 +225,74 @@ public function exportpdftahunan($tahun)
         }
 
         return view('pengguna/edit_profil', ['pengguna' => $pengguna]);
+    }public function updateProfil()
+{
+    $nip = session()->get('nip');
+    if (!$nip) {
+        return redirect()->to('/login/pengguna')->with('error', 'Session habis, silakan login ulang.');
     }
 
-    public function updateProfil()
-    {
-        $nip = session()->get('nip');
-        if (!$nip) {
-            return redirect()->to('/login/pengguna')->with('error', 'Session habis, silakan login ulang.');
-        }
+    $validation = \Config\Services::validation();
+    $rules = [
+        'nama'    => 'required',
+        'jabatan' => 'permit_empty',
+        'alamat'  => 'permit_empty',
+        'telepon' => 'permit_empty',
+        'status'  => 'required',
+        'foto'    => 'permit_empty|is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png]|max_size[foto,2048]',
+        'password_lama'        => 'permit_empty',
+        'password_baru'        => 'permit_empty|min_length[6]',
+        'konfirmasi_password'  => 'permit_empty|matches[password_baru]'
+    ];
 
-        $validation = \Config\Services::validation();
-        $rules = [
-            'nama'    => 'required',
-            'jabatan' => 'permit_empty',
-            'alamat'  => 'permit_empty',
-            'telepon' => 'permit_empty',
-            'status'  => 'required',
-            'foto'    => [
-                'label' => 'Foto Profil',
-                'rules' => 'is_image[foto]|mime_in[foto,image/jpg,image/jpeg,image/png]|max_size[foto,2048]'
-            ],
-            'password_lama'        => 'permit_empty',
-            'password_baru'        => 'permit_empty|min_length[6]',
-            'konfirmasi_password'  => 'permit_empty|matches[password_baru]'
-        ];
-        if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $validation->getErrors());
-        }
-
-        $dataUpdate = [
-            'nama'    => $this->request->getPost('nama'),
-            'jabatan' => $this->request->getPost('jabatan'),
-            'alamat'  => $this->request->getPost('alamat'),
-            'telepon' => $this->request->getPost('telepon'),
-            'status'  => $this->request->getPost('status')
-        ];
-
-        $foto = $this->request->getFile('foto');
-        if ($foto && $foto->isValid() && !$foto->hasMoved()) {
-            $newName = uniqid() . '.' . $foto->getExtension();
-            $foto->move('uploads/foto', $newName);
-            $dataUpdate['foto'] = $newName;
-
-            $pengguna = $this->penggunaModel->where('nip', $nip)->first();
-            if (!empty($pengguna['foto']) && file_exists('uploads/foto/' . $pengguna['foto'])) {
-                unlink('uploads/foto/' . $pengguna['foto']);
-            }
-        }
-
-        $passwordLama = $this->request->getPost('password_lama');
-        $passwordBaru = $this->request->getPost('password_baru');
-        $konfirmasi   = $this->request->getPost('konfirmasi_password');
-        if ($passwordLama || $passwordBaru || $konfirmasi) {
-            $pengguna = $this->penggunaModel->where('nip', $nip)->first();
-            if (!password_verify($passwordLama, $pengguna['password'])) {
-                return redirect()->back()->withInput()->with('error', 'Password lama salah');
-            }
-            if (empty($passwordBaru) || strlen($passwordBaru) < 6) {
-                return redirect()->back()->withInput()->with('error', 'Password baru minimal 6 karakter');
-            }
-            if ($passwordBaru !== $konfirmasi) {
-                return redirect()->back()->withInput()->with('error', 'Konfirmasi password tidak cocok');
-            }
-            $dataUpdate['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT);
-        }
-
-        $this->penggunaModel->where('nip', $nip)->set($dataUpdate)->update();
-        return redirect()->to('/pengguna/profil')->with('success', 'Profil berhasil diperbarui');
+    if (!$this->validate($rules)) {
+        return redirect()->back()->withInput()->with('errors', $validation->getErrors());
     }
+
+    $dataUpdate = [
+        'nama'    => $this->request->getPost('nama'),
+        'jabatan' => $this->request->getPost('jabatan'),
+        'alamat'  => $this->request->getPost('alamat'),
+        'telepon' => $this->request->getPost('telepon'),
+        'status'  => $this->request->getPost('status')
+    ];
+
+    // Upload foto jika ada
+    $foto = $this->request->getFile('foto');
+    if ($foto && $foto->isValid() && !$foto->hasMoved()) {
+        $newName = uniqid('foto_') . '.' . $foto->getExtension();
+        if (!$foto->move('uploads/foto', $newName)) {
+            return redirect()->back()->with('error', 'Gagal upload foto.');
+        }
+
+        $dataUpdate['foto'] = $newName;
+
+        // Hapus foto lama
+        $pengguna = $this->penggunaModel->where('nip', $nip)->first();
+        if (!empty($pengguna['foto']) && file_exists('uploads/foto/' . $pengguna['foto'])) {
+            @unlink('uploads/foto/' . $pengguna['foto']);
+        }
+    }
+
+    // Ganti password jika SEMUA field password diisi
+    $passwordLama = $this->request->getPost('password_lama');
+    $passwordBaru = $this->request->getPost('password_baru');
+    $konfirmasi   = $this->request->getPost('konfirmasi_password');
+
+    if (!empty($passwordLama) && !empty($passwordBaru) && !empty($konfirmasi)) {
+        $pengguna = $this->penggunaModel->where('nip', $nip)->first();
+        if (!password_verify($passwordLama, $pengguna['password'])) {
+            return redirect()->back()->withInput()->with('error', 'Password lama salah.');
+        }
+
+        $dataUpdate['password'] = password_hash($passwordBaru, PASSWORD_DEFAULT);
+    }
+
+    $this->penggunaModel->where('nip', $nip)->set($dataUpdate)->update();
+
+    return redirect()->to('/pengguna/profil')->with('success', 'Profil berhasil diperbarui.');
+}
+
 
     public function editPassword()
     {

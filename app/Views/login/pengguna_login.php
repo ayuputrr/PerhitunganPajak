@@ -199,19 +199,26 @@
       <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
       <?php endif ?>
-    <form method="post" action="/login/pengguna" autocomplete="off">
-  <div class="d-flex align-items-center mb-2">
-    <span style="min-width:60px; color:#27ae60; font-weight:700;">NIP</span>
-  </div>
-  <div class="mb-3">
-    <input type="text" name="nip" class="form-control" required placeholder="Masukkan NIP">
-  </div>
+      <form method="post" action="/login/pengguna" autocomplete="off">
+        <div class="d-flex align-items-center mb-2">
+          <span style="min-width:60px; color:#27ae60; font-weight:700;">NIP</span>
+        </div>
+        <div class="mb-3">
+          <input type="text" name="nip" class="form-control" required placeholder="Masukkan NIP">
+        </div>
         <div class="password-label-custom">Password</div>
         <div class="mb-3 password-group">
           <input type="password" name="password" class="form-control" id="password-input" required placeholder="Masukkan password">
           <button type="button" class="toggle-password" tabindex="-1" onclick="togglePassword()" aria-label="Lihat Password">
             <i class="bi bi-eye-slash" id="icon-eye"></i>
           </button>
+        </div>
+        <div class="mb-3">
+          <label>Kode Captcha</label>
+          <div class="mb-2">
+            <img src="<?= base_url('captcha-image') ?>" alt="captcha" style="border-radius: 10px; border:1px solid #ccc;">
+          </div>
+          <input type="text" name="captcha_input" class="form-control mt-2" required placeholder="Masukkan kode di atas">
         </div>
         <button type="submit" class="btn btn-login w-100">Login <i class="bi bi-box-arrow-in-right ms-2"></i></button>
         <div class="text-center mt-3">

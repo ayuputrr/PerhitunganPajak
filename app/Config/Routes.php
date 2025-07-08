@@ -16,6 +16,7 @@ $routes->get('/pengguna/registrasi', 'Auth::registrasiForm');
 $routes->post('/pengguna/registrasi', 'Auth::registrasi');
 $routes->get('/pengguna/logout', 'Auth::logout');
 $routes->get('/pegawai/logout', 'Auth::logout');
+$routes->get('/captcha-image', 'CaptchaController::image');
 
 // DASHBOARD & ARSIP PENGGUNA
 $routes->get('/pengguna/dashboard', 'Pengguna::dashboard');
@@ -61,7 +62,8 @@ $routes->get('laporan', 'Laporan::bulanan');
 $routes->get('pegawai/detail/(:num)', 'Pegawai::detail/$1');
 
 $routes->get('/pengguna/edit_profil', 'Pengguna::editProfil');
-$routes->post('/pengguna/update_profil', 'Pengguna::updateProfil');
+$routes->post('pengguna/updateProfil', 'Pengguna::updateProfil');
+
 $routes->get('/pengguna/edit_password', 'Pengguna::editPassword');
 $routes->post('/pengguna/update_password', 'Pengguna::updatePassword');
 $routes->get('/pengguna/profil', 'Pengguna::profil');
