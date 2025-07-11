@@ -211,4 +211,21 @@ if ($pegawai) {
 ## 👨‍💻 Developer
 
 Dikembangkan untuk kebutuhan instansi pemerintahan, khususnya di lingkungan Kabupaten Pringsewu.
-EOF
+
+
+## Dokumentasi Website
+
+
+<img width="1353" height="633" alt="Screenshot 2025-07-11 104107" src="https://github.com/user-attachments/assets/526a5b13-4332-40e6-a0e8-8aa0bd64a8a1" />
+<img width="1348" height="629" alt="Screenshot 2025-07-11 104039" src="https://github.com/user-attachments/assets/bd173e80-e803-449a-a892-888e43e38edf" />
+<img width="1361" height="628" alt="Screenshot 2025-07-11 104146" src="https://github.com/user-attachments/assets/382ef190-f38c-4c87-87ad-b0f73ff4ed6f" />
+<img width="1356" height="635" alt="Screenshot 2025-07-11 104203" src="https://github.com/user-attachments/assets/6ee6195f-2752-426e-a935-988ad806b90c" />
+<img width="1361" height="635" alt="Screenshot 2025-07-11 104216" src="https://github.com/user-attachments/assets/72d219d0-02be-40cb-9d6c-d3491d24ecae" />
+<img width="1365" height="629" alt="Screenshot 2025-07-11 104227" src="https://github.com/user-attachments/assets/c36e8cb3-6a0e-452c-89d2-eb27ca951b51" />
+<img width="1349" height="634" alt="Screenshot 2025-07-11 104252" src="https://github.com/user-attachments/assets/3c9342c3-95df-49e9-9068-b16eac90c079" />
+<img width="1347" height="632" alt="Screenshot 2025-07-11 104310" src="https://github.com/user-attachments/assets/887ac116-f51e-4c1b-a3a0-ce0e8029b46d" />
+<img width="1363" height="630" alt="Screenshot 2025-07-11 104329" src="https://github.com/user-attachments/assets/a957ef17-f0d4-4fa5-8602-8e7b7d64cf1a" />
+<img width="1354" height="631" alt="Screenshot 2025-07-11 104347" src="https://github.com/user-attachments/assets/e4a76fec-99b6-4a56-a399-abf9898c51c0" />
+<img width="1351" height="628" alt="Screenshot 2025-07-11 104409" src="https://github.com/user-attachments/assets/d99d0148-41ec-4928-902c-f93da9fde128" />
+<img width="1351" height="634" alt="Screenshot 2025-07-11 104424" src="https://github.com/user-attachments/assets/e933ed3e-187c-4bf0-af0f-740c3af8eb19" />
+
