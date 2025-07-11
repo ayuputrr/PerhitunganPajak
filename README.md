@@ -200,7 +200,7 @@ if ($pegawai) {
 
 ## 🔧 Teknologi yang Digunakan
 
-- PHP 8.x
+- PHP 5.2.2
 - CodeIgniter 4
 - MySQL / MariaDB
 - Bootstrap 5
