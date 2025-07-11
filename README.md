@@ -89,7 +89,7 @@ $bruto = $gaji_pokok + $tunj_jabatan + $tunj_lainnya;
 $golongan = getGolonganTER($status, $bruto);
 $tarif_TER = getTER($golongan, $status);
 $pajak_bulanan = $bruto * $tarif_TER / 100;
-$pajak_tahunan = $pajak_bulanan * 12;
+$pajak_tahunan = $pajak_bulanan * 12;```
 ---
 
 # 👤 Modul Pengguna (Pegawai Biasa) – Login Berdasarkan Status Database Admin
@@ -127,7 +127,7 @@ $pajak_tahunan = $pajak_bulanan * 12;
 
 ## 🔄 Revisi Alur Interaksi Pengguna (dengan Login)
 
-\`\`\`mermaid
+```
 flowchart TD
     A[Pengguna Akses Halaman Login] --> B[Input NIP & Password]
     B --> C{Login Berhasil?}
@@ -140,7 +140,7 @@ flowchart TD
     H -->|Ya| I[Unduh PDF + Simpan ke Arsip]
     H -->|Tidak| J[Kembali ke Dashboard]
     D --> K[Lihat Notifikasi Pajak Masuk]
-\`\`\`
+```
 
 ---
 
