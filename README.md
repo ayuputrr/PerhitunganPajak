@@ -9,7 +9,6 @@
    - Saat mendaftar, pengguna akan diminta:
      - NIP
      - Nama lengkap
-     - Email (opsional)
      - Password
    - Sistem akan **memvalidasi** apakah NIP tersebut cocok dengan tabel `pegawai`
 
