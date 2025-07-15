@@ -70,3 +70,8 @@ $routes->get('/pengguna/profil', 'Pengguna::profil');
 
 $routes->get('/pengguna/arsip_tahunan', 'Pengguna::arsipTahunan');
 $routes->get('pengguna/exportPdfTahunan/(:num)', 'Pengguna::exportPdfTahunan/$1');
+$routes->get('pengguna/exportArsipPdf', 'Pengguna::exportArsipPdf');
+$routes->get('auth/lupaPassword', 'Auth::lupaPassword');
+$routes->post('auth/verifikasiNip', 'Auth::verifikasiNip');
+$routes->get('auth/resetPassword', 'Auth::resetPassword');
+$routes->post('auth/prosesResetPassword', 'Auth::prosesResetPassword');

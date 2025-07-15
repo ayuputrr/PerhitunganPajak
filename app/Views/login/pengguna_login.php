@@ -34,9 +34,9 @@
       animation: fadePop 1s cubic-bezier(.23,1.01,.32,1) 1;
     }
     @keyframes fadePop {
-      0% { opacity: 0; transform: scale(0.95) translateY(60px);}
-      70% { opacity: 1; transform: scale(1.05) translateY(-10px);}
-      100% { opacity: 1; transform: scale(1) translateY(0);}
+      0% { opacity: 0; transform: scale(0.95) translateY(60px); }
+      70% { opacity: 1; transform: scale(1.05) translateY(-10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
     }
     .login-icon {
       width: 90px;
@@ -52,8 +52,8 @@
       animation: iconPop 1.2s cubic-bezier(.23,1.01,.32,1);
     }
     @keyframes iconPop {
-      0% { filter: blur(2px) brightness(0.7);}
-      100% { filter: blur(0) brightness(1);}
+      0% { filter: blur(2px) brightness(0.7); }
+      100% { filter: blur(0) brightness(1); }
     }
     .login-icon i {
       font-size: 2.7rem;
@@ -62,8 +62,8 @@
       animation: iconPulse 1.7s infinite alternate;
     }
     @keyframes iconPulse {
-      0% { filter: drop-shadow(0 0 8px #6dd5ed);}
-      100% { filter: drop-shadow(0 0 18px #27ae60);}
+      0% { filter: drop-shadow(0 0 8px #6dd5ed); }
+      100% { filter: drop-shadow(0 0 18px #27ae60); }
     }
     .login-title {
       font-weight: 900;
@@ -113,6 +113,7 @@
       box-shadow: 0 4px 18px 0 #27ae60cc;
       letter-spacing: 1.2px;
       text-shadow: 0 1px 8px #27ae6088;
+      cursor: pointer;
     }
     .btn-login:hover, .btn-login:focus {
       background: linear-gradient(90deg, #6dd5ed 0%, #27ae60 100%);
@@ -196,55 +197,76 @@
       </div>
       <h3 class="login-title">Login Pengguna</h3>
       <div class="login-desc mb-3">Masuk ke akun pengguna untuk mengakses layanan pajak.</div>
+
       <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
       <?php endif ?>
+
+      <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+      <?php endif ?>
+
       <form method="post" action="/login/pengguna" autocomplete="off">
+        <?= csrf_field() ?>
+
         <div class="d-flex align-items-center mb-2">
           <span style="min-width:60px; color:#27ae60; font-weight:700;">NIP</span>
         </div>
         <div class="mb-3">
-          <input type="text" name="nip" class="form-control" required placeholder="Masukkan NIP">
+          <input type="text" name="nip" class="form-control" required placeholder="Masukkan NIP" autocomplete="username">
         </div>
+
         <div class="password-label-custom">Password</div>
         <div class="mb-3 password-group">
-          <input type="password" name="password" class="form-control" id="password-input" required placeholder="Masukkan password">
+          <input type="password" name="password" class="form-control" id="password-input" required placeholder="Masukkan password" autocomplete="current-password">
           <button type="button" class="toggle-password" tabindex="-1" onclick="togglePassword()" aria-label="Lihat Password">
             <i class="bi bi-eye-slash" id="icon-eye"></i>
           </button>
         </div>
+
         <div class="mb-3">
           <label>Kode Captcha</label>
           <div class="mb-2">
             <img src="<?= base_url('captcha-image') ?>" alt="captcha" style="border-radius: 10px; border:1px solid #ccc;">
           </div>
-          <input type="text" name="captcha_input" class="form-control mt-2" required placeholder="Masukkan kode di atas">
+          <input type="text" name="captcha_input" class="form-control mt-2" required placeholder="Masukkan kode di atas" autocomplete="off">
         </div>
-        <button type="submit" class="btn btn-login w-100">Login <i class="bi bi-box-arrow-in-right ms-2"></i></button>
+
+        <button type="submit" class="btn btn-login w-100">
+          Login <i class="bi bi-box-arrow-in-right ms-2"></i>
+        </button>
+
         <div class="text-center mt-3">
           Belum punya akun? <a href="/pengguna/registrasi" style="color:#27ae60;font-weight:600;">Daftar di sini</a>
+        </div>
+
+        <div class="text-center mt-3">
+          <p>Lupa password? <a href="<?= site_url('auth/lupaPassword') ?>" style="color:#e74c3c;font-weight:600;">Reset di sini</a></p>
         </div>
       </form>
     </div>
   </div>
 </div>
+
 <div class="footer-tiny">
   &copy; <?= date('Y') ?> Sistem Login Pajak | <span style="color:#27ae60;">Pringsewu</span>
 </div>
+
 <script>
-function togglePassword() {
-  const input = document.getElementById('password-input');
-  const icon = document.getElementById('icon-eye');
-  if (input.type === "password") {
-    input.type = "text";
-    icon.classList.remove('bi-eye-slash');
-    icon.classList.add('bi-eye');
-  } else {
-    input.type = "password";
-    icon.classList.remove('bi-eye');
-    icon.classList.add('bi-eye-slash');
+  function togglePassword() {
+    const input = document.getElementById('password-input');
+    const icon = document.getElementById('icon-eye');
+    if (input.type === "password") {
+      input.type = "text";
+      icon.classList.remove('bi-eye-slash');
+      icon.classList.add('bi-eye');
+    } else {
+      input.type = "password";
+      icon.classList.remove('bi-eye');
+      icon.classList.add('bi-eye-slash');
+    }
   }
-}
 </script>
+
 </body>
 </html>
