@@ -31,31 +31,33 @@ class Auth extends Controller
     }
 
     // PROSES Login Admin
-    public function doLoginAdmin()
-    {
-        $email = $this->request->getPost('email');
-        $password = $this->request->getPost('password');
+   // PROSES Login Admin TANPA HASH (versi tidak aman / plaintext)
+public function doLoginAdmin()
+{
+    $email = $this->request->getPost('email');
+    $password = $this->request->getPost('password');
 
-        $userModel = new UserModel();
-        $admin = $userModel->where('email', $email)->first();
+    $userModel = new UserModel();
+    $admin = $userModel->where('email', $email)->first();
 
-        if (!$admin) {
-            return redirect()->back()->with('error', 'Email atau password salah.');
-        }
-
-        // Gunakan password_verify jika password di DB sudah di-hash
-        if (!password_verify($password, $admin['password'])) {
-            return redirect()->back()->with('error', 'Email atau password salah.');
-        }
-
-        session()->set([
-            'logged_in' => true,
-            'email'     => $admin['email'],
-            'role'      => 'admin'
-        ]);
-
-        return redirect()->to('/pegawai/dashboard');
+    if (!$admin) {
+        return redirect()->back()->with('error', 'Email atau password salah.');
     }
+
+    // ✅ Compare password polos dari input dan database
+    if ($password !== $admin['password']) {
+        return redirect()->back()->with('error', 'Email atau password salah.');
+    }
+
+    // ✅ Login berhasil
+    session()->set([
+        'logged_in' => true,
+        'email'     => $admin['email'],
+        'role'      => 'admin'
+    ]);
+
+    return redirect()->to('/pegawai/dashboard');
+}
 
     // PROSES Login Pengguna
     public function loginPengguna()
